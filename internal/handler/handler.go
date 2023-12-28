@@ -69,18 +69,19 @@ func (h *restHanlder) AddBook(c *gin.Context) {
 	err := c.ShouldBindBodyWith(&param, binding.JSON)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
-	}
-	result, err := h.service.AddBook(*param)
-	if err != nil {
-		if errors.Is(err, service.ErrorIncorrectId) {
-			c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
-		} else if errors.Is(err, service.ErrorYear) {
-			c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
-		} else {
-			c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
-		}
 	} else {
-		c.JSON(http.StatusOK, SuccessResponse{Result: result})
+		result, err := h.service.AddBook(*param)
+		if err != nil {
+			if errors.Is(err, service.ErrorIncorrectId) {
+				c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
+			} else if errors.Is(err, service.ErrorYear) {
+				c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
+			} else {
+				c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+			}
+		} else {
+			c.JSON(http.StatusOK, SuccessResponse{Result: result})
+		}
 	}
 }
 

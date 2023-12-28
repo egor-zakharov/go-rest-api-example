@@ -6,3 +6,5 @@ type SuccessResponse struct {
 type ErrorResponse struct {
 	Message string `json:"error"`
 }
+
+//

@@ -9,3 +9,5 @@ type RestHandler interface {
 	UpdateBook(c *gin.Context)
 	DeleteBookById(c *gin.Context)
 }
+
+//

@@ -15,3 +15,5 @@ type Storage interface {
 	UpdateBook(in models.Book) (*models.Book, error)
 	DeleteBookById(bookId int64) error
 }
+
+//

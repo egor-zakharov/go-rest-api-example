@@ -47,3 +47,5 @@ func (s *service) UpdateBook(in models.Book) (*models.Book, error) {
 func (s *service) DeleteBookById(bookId int64) error {
 	return s.storage.DeleteBookById(bookId)
 }
+
+//

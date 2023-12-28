@@ -86,3 +86,5 @@ func (s *storage) DeleteBookById(bookId int64) error {
 	}
 	return nil
 }
+
+//

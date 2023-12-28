@@ -27,8 +27,12 @@ func (s *service) GetAllBooks() ([]models.Book, error) {
 }
 
 func (s *service) AddBook(in models.Book) (*models.Book, error) {
+	//TODO required fields
 	if in.Id != 0 {
 		return nil, ErrorIncorrectId
+	}
+	if in.ReleasedYear < 1901 || in.ReleasedYear > 2155 {
+		return nil, ErrorYear
 	}
 	return s.storage.AddBook(in)
 }

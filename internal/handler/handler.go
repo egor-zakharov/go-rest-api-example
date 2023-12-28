@@ -23,6 +23,11 @@ func NewHandler(service service.Service) RestHandler {
 	}
 }
 
+// GetAllBooks godoc
+// @Summary Get all books
+// @Produce json
+// @Success 200 {array} models.Book
+// @Router /book/ [get]
 func (h *restHanlder) GetAllBooks(c *gin.Context) {
 	result, err := h.service.GetAllBooks()
 	//Проверять err!=nil или err == nil?
@@ -33,6 +38,12 @@ func (h *restHanlder) GetAllBooks(c *gin.Context) {
 	}
 }
 
+// GetBookById godoc
+// @Summary Get book
+// @Produce json
+// @Param id path int true "Book Id"
+// @Success 200 {object} models.Book
+// @Router /book/{id} [get]
 func (h *restHanlder) GetBookById(c *gin.Context) {
 	paramId := c.Param("id")
 	id, _ := strconv.Atoi(paramId)
@@ -47,6 +58,12 @@ func (h *restHanlder) GetBookById(c *gin.Context) {
 	}
 }
 
+// AddBook godoc
+// @Summary Add book
+// @Produce json
+// @Param book body models.Book true "Add book"
+// @Success 200 {object} models.Book
+// @Router /book/ [post]
 func (h *restHanlder) AddBook(c *gin.Context) {
 	param := &models.Book{}
 	err := c.ShouldBindBodyWith(&param, binding.JSON)
@@ -67,6 +84,12 @@ func (h *restHanlder) AddBook(c *gin.Context) {
 	}
 }
 
+// UpdateBook godoc
+// @Summary Update book
+// @Produce json
+// @Param book body models.Book true "Update book"
+// @Success 200 {object} models.Book
+// @Router /book/ [put]
 func (h *restHanlder) UpdateBook(c *gin.Context) {
 	param := &models.Book{}
 	err := c.ShouldBindBodyWith(&param, binding.JSON)
@@ -83,6 +106,12 @@ func (h *restHanlder) UpdateBook(c *gin.Context) {
 	}
 }
 
+// DeleteBookById godoc
+// @Summary Delete book
+// @Produce json
+// @Param id path int true "Book Id"
+// @Success 200
+// @Router /book/{id} [delete]
 func (h *restHanlder) DeleteBookById(c *gin.Context) {
 	paramId := c.Param("id")
 	id, _ := strconv.Atoi(paramId)

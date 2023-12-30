@@ -21,23 +21,23 @@ import (
 
 // @title  Swagger API
 // @version 1.0
-// @description Swagger API for Golang Project Blueprint.
+// @description Swagger API for Golang Project Books.
 // @termsOfService http://swagger.io/terms/
 
 // @BasePath /api/v1
 func main() {
-	router := gin.Default()
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	cfg := config.New()
+
 	//DSN full form username:password@protocol(address)/dbname?param=value
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@(:%s)/%s", cfg.DBUserName, cfg.DBPassword, cfg.DBPort, cfg.DBDatabaseName))
-
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
 
+	router := gin.Default()
 	h := handler.NewHandler(service.New(storage.New(db)))
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	v1 := router.Group("api/v1")
 	{
 		v1.GET("/book", h.GetAllBooks)

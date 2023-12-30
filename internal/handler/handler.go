@@ -1,13 +1,11 @@
 package handler
 
 import (
-	"errors"
 	"fmt"
 	"library/internal/models"
 	"library/internal/service"
-	"library/internal/storage"
+	u "library/internal/utils"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -29,13 +27,12 @@ func NewHandler(service service.Service) RestHandler {
 // @Success 200 {array} models.Book
 // @Router /book/ [get]
 func (h *restHanlder) GetAllBooks(c *gin.Context) {
-	result, err := h.service.GetAllBooks()
-	//Проверять err!=nil или err == nil?
+	result, err := h.service.FindAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
-	} else {
-		c.JSON(http.StatusOK, SuccessResponse{Result: result})
+		return
 	}
+	c.JSON(http.StatusOK, SuccessResponse{Result: result})
 }
 
 // GetBookById godoc
@@ -45,17 +42,17 @@ func (h *restHanlder) GetAllBooks(c *gin.Context) {
 // @Success 200 {object} models.Book
 // @Router /book/{id} [get]
 func (h *restHanlder) GetBookById(c *gin.Context) {
-	paramId := c.Param("id")
-	id, _ := strconv.Atoi(paramId)
-	result, err := h.service.GetBookById(int64(id))
-	//ОК ли тянуть ошибки из service и storage в handler?
-	if errors.Is(err, service.ErrorNegativeId) {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
-	} else if errors.Is(err, storage.ErrorNotFound) {
-		c.JSON(http.StatusNotFound, ErrorResponse{Message: err.Error()})
-	} else {
-		c.JSON(http.StatusOK, SuccessResponse{Result: result})
+	id, err := u.GetInt64FromContext(c, "id")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		return
 	}
+	result, err := h.service.Find(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, ErrorResponse{Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, SuccessResponse{Result: result})
 }
 
 // AddBook godoc
@@ -69,42 +66,42 @@ func (h *restHanlder) AddBook(c *gin.Context) {
 	err := c.ShouldBindBodyWith(&param, binding.JSON)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
-	} else {
-		result, err := h.service.AddBook(*param)
-		if err != nil {
-			if errors.Is(err, service.ErrorIncorrectId) {
-				c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
-			} else if errors.Is(err, service.ErrorYear) {
-				c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
-			} else {
-				c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
-			}
-		} else {
-			c.JSON(http.StatusOK, SuccessResponse{Result: result})
-		}
+		return
 	}
+	result, err := h.service.Add(*param)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, SuccessResponse{Result: result})
 }
 
 // UpdateBook godoc
 // @Summary Update book
 // @Produce json
+// @Param id path int true "Book Id"
 // @Param book body models.Book true "Update book"
 // @Success 200 {object} models.Book
-// @Router /book/ [put]
+// @Router /book/{id} [put]
 func (h *restHanlder) UpdateBook(c *gin.Context) {
-	param := &models.Book{}
-	err := c.ShouldBindBodyWith(&param, binding.JSON)
+	id, err := u.GetInt64FromContext(c, "id")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		return
 	}
-	result, err := h.service.UpdateBook(*param)
+	param := &models.Book{}
+	err = c.ShouldBindBodyWith(&param, binding.JSON)
 	if err != nil {
-		if errors.Is(err, storage.ErrorNothingToUpdate) {
-			c.JSON(http.StatusNoContent, ErrorResponse{Message: err.Error()})
-		}
-	} else {
-		c.JSON(http.StatusOK, SuccessResponse{Result: result})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		return
 	}
+	param.Id = id
+	result, err := h.service.Update(*param)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, SuccessResponse{Result: result})
 }
 
 // DeleteBookById godoc
@@ -114,16 +111,16 @@ func (h *restHanlder) UpdateBook(c *gin.Context) {
 // @Success 200
 // @Router /book/{id} [delete]
 func (h *restHanlder) DeleteBookById(c *gin.Context) {
-	paramId := c.Param("id")
-	id, _ := strconv.Atoi(paramId)
-	err := h.service.DeleteBookById(int64(id))
+	id, err := u.GetInt64FromContext(c, "id")
 	if err != nil {
-		if errors.Is(err, storage.ErrorNotFound) {
-			c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
-		} else {
-			c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
-		}
-	} else {
-		c.JSON(http.StatusOK, SuccessResponse{Result: fmt.Sprintf("Book:%d. successfully deleted", id)})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		return
 	}
+	err = h.service.Delete(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		return
+
+	}
+	c.JSON(http.StatusOK, SuccessResponse{Result: fmt.Sprintf("Book: %d. successfully deleted", id)})
 }

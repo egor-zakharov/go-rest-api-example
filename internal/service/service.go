@@ -3,6 +3,7 @@ package service
 import (
 	"library/internal/models"
 	"library/internal/storage"
+	"library/internal/utils"
 )
 
 type service struct {
@@ -15,37 +16,30 @@ func New(storage storage.Storage) Service {
 	}
 }
 
-func (s *service) GetBookById(bookId int64) (*models.Book, error) {
-	if bookId < 1 {
-		return nil, ErrorNegativeId
+func (s *service) Find(bookId int64) (*models.Book, error) {
+	return s.storage.Find(bookId)
+}
+
+func (s *service) FindAll() ([]models.Book, error) {
+	return s.storage.FindAll()
+}
+
+func (s *service) Add(in models.Book) (*models.Book, error) {
+	err := utils.ValidateAddableBook(in)
+	if err != nil {
+		return nil, err
 	}
-	return s.storage.GetBookById(bookId)
+	return s.storage.Add(in)
 }
 
-func (s *service) GetAllBooks() ([]models.Book, error) {
-	return s.storage.GetAllBooks()
-}
-
-func (s *service) AddBook(in models.Book) (*models.Book, error) {
-	//TODO required fields
-	if in.Id != 0 {
-		return nil, ErrorIncorrectId
+func (s *service) Update(in models.Book) (*models.Book, error) {
+	err := utils.ValidateUpdatableBook(in)
+	if err != nil {
+		return nil, err
 	}
-	if in.ReleasedYear < 1901 || in.ReleasedYear > 2155 {
-		return nil, ErrorYear
-	}
-	return s.storage.AddBook(in)
+	return s.storage.Update(in)
 }
 
-func (s *service) UpdateBook(in models.Book) (*models.Book, error) {
-	if in.Id < 1 {
-		return nil, ErrorNegativeId
-	}
-	return s.storage.UpdateBook(in)
+func (s *service) Delete(bookId int64) error {
+	return s.storage.Delete(bookId)
 }
-
-func (s *service) DeleteBookById(bookId int64) error {
-	return s.storage.DeleteBookById(bookId)
-}
-
-//

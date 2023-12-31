@@ -9,9 +9,9 @@ var ErrorNotFound = errors.New("Book not found")
 var ErrorNothingToUpdate = errors.New("Nothing book to update")
 
 type Storage interface {
-	GetBookById(bookId int64) (*models.Book, error)
-	GetAllBooks() ([]models.Book, error)
-	AddBook(in models.Book) (*models.Book, error)
-	UpdateBook(in models.Book) (*models.Book, error)
-	DeleteBookById(bookId int64) error
+	Find(bookId int64) (*models.Book, error)
+	FindAll() ([]models.Book, error)
+	Add(in models.Book) (*models.Book, error)
+	Update(in models.Book) (*models.Book, error)
+	Delete(bookId int64) error
 }
